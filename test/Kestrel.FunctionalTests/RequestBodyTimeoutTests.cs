@@ -96,8 +96,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel.FunctionalTests
                     Assert.True(appRunningEvent.Wait(TimeSpan.FromSeconds(10)));
 
                     await connection.Receive(
-                        "HTTP/1.1 408 Request Timeout",
-                        "Connection: close",
+                        "HTTP/1.1 200 OK",
                         "");
                     await connection.ReceiveStartsWith(
                         "Date: ");
