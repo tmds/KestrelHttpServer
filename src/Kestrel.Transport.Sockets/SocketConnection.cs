@@ -28,14 +28,14 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets
         private IList<ArraySegment<byte>> _sendBufferList;
         private volatile bool _aborted;
 
-        internal SocketConnection(Socket socket, PipeFactory pipeFactory, ISocketsTrace trace)
+        internal SocketConnection(Socket socket, BufferPool bufferPool, ISocketsTrace trace)
         {
             Debug.Assert(socket != null);
-            Debug.Assert(pipeFactory != null);
+            Debug.Assert(bufferPool != null);
             Debug.Assert(trace != null);
 
             _socket = socket;
-            PipeFactory = pipeFactory;
+            BufferPool = bufferPool;
             _trace = trace;
 
             var localEndPoint = (IPEndPoint)_socket.LocalEndPoint;
@@ -48,7 +48,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets
             RemotePort = remoteEndPoint.Port;
         }
 
-        public override PipeFactory PipeFactory { get; }
+        public override BufferPool BufferPool { get; }
         public override IScheduler InputWriterScheduler => InlineScheduler.Default;
         public override IScheduler OutputReaderScheduler => TaskRunScheduler.Default;
 
