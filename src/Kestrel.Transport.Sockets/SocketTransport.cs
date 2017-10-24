@@ -23,6 +23,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets
         private readonly ISocketsTrace _trace;
         private Socket _listenSocket;
         private Task _listenTask;
+        private volatile bool _unbinding;
 
         internal SocketTransport(
             IEndPointInformation endPointInformation,
@@ -44,6 +45,8 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets
 
         public Task BindAsync()
         {
+            Console.WriteLine("BindAsync");
+
             if (_listenSocket != null)
             {
                 throw new InvalidOperationException(SocketsStrings.TransportAlreadyBound);
@@ -87,15 +90,18 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets
 
         public async Task UnbindAsync()
         {
+            Console.WriteLine("UnbindAsync");
             if (_listenSocket != null)
             {
-                var listenSocket = _listenSocket;
-                _listenSocket = null;
+                Console.WriteLine("UnbindAsync2");
 
-                listenSocket.Dispose();
+                _unbinding = true;
+                _listenSocket.Dispose();
 
                 Debug.Assert(_listenTask != null);
                 await _listenTask.ConfigureAwait(false);
+                _unbinding = false;
+                _listenSocket = null;
                 _listenTask = null;
             }
         }
@@ -120,14 +126,24 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets
                     _ = connection.StartAsync(_handler);
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                if (_listenSocket == null)
+                if (_unbinding)
                 {
+                    Console.WriteLine("RunAcceptLoopAsync: Ex ignored {0}", ex);
                     // Means we must be unbinding.  Eat the exception.
                 }
                 else
                 {
+                    Console.WriteLine("RunAcceptLoopAsync: _listenSocket == {0}, Ex: {1}", _listenSocket, ex);
+
+                    var sockEx = ex as SocketException;
+
+                    if (sockEx != null)
+                    {
+                        Console.WriteLine("SocketError = {0}", sockEx.SocketErrorCode);
+                    }
+
                     throw;
                 }
             }
