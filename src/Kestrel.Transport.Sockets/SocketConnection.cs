@@ -63,7 +63,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets
 
         public override PipeFactory PipeFactory { get; }
         public override IScheduler InputWriterScheduler => InlineScheduler.Default;
-        public override IScheduler OutputReaderScheduler => TaskRunScheduler.Default;
+        public override IScheduler OutputReaderScheduler => InlineScheduler.Default;
 
         public async Task StartAsync(IConnectionHandler connectionHandler)
         {
